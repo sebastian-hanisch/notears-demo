@@ -22,7 +22,7 @@ def test_default_sample():
     assert a.learned == a.truth and a.rank == a.truth and a.compare["PC"]["correct"] == 3 and a.compare["PC"]["undirected"] == 2 and a.compare["PC"]["shd"] == 1.0 and a.varsort == 1.0
     assert ev.verdict_instance(a)[0] == "success" and "Roh: NOTEARS richtet 5 von 5 wahren Kanten richtig und 0 falsch herum (SHD 0,0)" in ev.verdict_instance(a)[1]
     std = ev.analyse(ev.Settings(scale="standardisiert"))
-    assert std.compare["NOTEARS"]["correct"] == 0 and std.compare["NOTEARS"]["reversed"] == 4 and std.compare["NOTEARS"]["missing"] == 1 and std.compare["NOTEARS"]["shd"] == 5.0 and std.compare["Rangbaseline"]["shd"] == 4.0
+    assert std.compare["NOTEARS"]["correct"] == 0 and std.compare["NOTEARS"]["reversed"] == 4 and std.compare["NOTEARS"]["missing"] == 1 and std.compare["NOTEARS"]["shd"] == 5.0 and std.compare["Rangbaseline"]["shd"] == 6.0
 
 
 def test_hand_values_of_the_text():
@@ -55,8 +55,9 @@ def test_experiment_1_random_dags(full_random):
     raw, std = r["rows"]["roh"], r["rows"]["standardisiert"]
     assert (raw["NOTEARS"]["correct"], raw["NOTEARS"]["reversed"], raw["NOTEARS"]["shd"]) == pytest.approx((0.935, 0.0244, 0.4), abs=0.0006)
     assert (raw["Rangbaseline"]["correct"], raw["Rangbaseline"]["reversed"], raw["Rangbaseline"]["shd"]) == pytest.approx((0.9268, 0.065, 0.75), abs=0.0006)
-    assert (std["NOTEARS"]["correct"], std["NOTEARS"]["reversed"], std["NOTEARS"]["shd"]) == pytest.approx((0.3252, 0.3577, 4.6), abs=0.0006)
-    assert (std["Rangbaseline"]["correct"], std["Rangbaseline"]["reversed"], std["Rangbaseline"]["shd"]) == pytest.approx((0.4878, 0.4715, 5.75), abs=0.0006)
+    # standardisiert entscheidet Rundungsrauschen über die Gleichstände des Verlusts: NOTEARS weicht je Plattform um eine Kante ab (CI: 0,317 / 0,366 / 4,65), die Rangbaseline ist über die feste Zufallsreihenfolge bei Gleichstand reproduzierbar
+    assert (std["NOTEARS"]["correct"], std["NOTEARS"]["reversed"], std["NOTEARS"]["shd"]) == pytest.approx((0.32, 0.36, 4.6), abs=0.02) and std["NOTEARS"]["shd"] == pytest.approx(4.6, abs=0.1)
+    assert (std["Rangbaseline"]["correct"], std["Rangbaseline"]["reversed"], std["Rangbaseline"]["shd"]) == pytest.approx((0.4553, 0.4797, 6.0), abs=0.0006)
     assert raw["PC"] == std["PC"] and (raw["PC"]["correct"], raw["PC"]["reversed"], raw["PC"]["undirected"], raw["PC"]["shd"]) == pytest.approx((0.3984, 0.1951, 0.2764, 2.9), abs=0.0006)
     assert raw["Rangbaseline"]["extra"] == pytest.approx(0.3, abs=0.0006) and raw["NOTEARS"]["extra"] == 0.0 and raw["NOTEARS"]["missing"] == pytest.approx(0.25, abs=0.0006)
     text = ev.verdict_random(r)[1]
@@ -77,7 +78,7 @@ def test_experiment_2_the_world(full_world):
         assert (s["sz"], s["zx"], s["full"]) == (0.0, 0.0, 0.0)
         assert (s["methods"]["NOTEARS"]["correct"], s["methods"]["NOTEARS"]["reversed"], s["methods"]["NOTEARS"]["missing"], s["methods"]["NOTEARS"]["shd"]) == pytest.approx((correct, reversed_, missing, shd), abs=0.0006)
         assert s["methods"]["PC"] == rows[(n, "roh")]["methods"]["PC"]
-    assert (rows[(1000, "standardisiert")]["methods"]["Rangbaseline"]["correct"], rows[(1000, "standardisiert")]["methods"]["Rangbaseline"]["extra"]) == pytest.approx((0.475, 2.625), abs=0.0006)
+    assert (rows[(1000, "standardisiert")]["methods"]["Rangbaseline"]["correct"], rows[(1000, "standardisiert")]["methods"]["Rangbaseline"]["extra"]) == pytest.approx((0.4125, 2.125), abs=0.0006)
     text = ev.verdict_world(r)[1]
     assert "(n = 1 000, 16 Läufe je Zelle)" in text and "S → Z in 100 % und Z → X in 100 %" in text and "(ungerichtet 40 % der wahren Kanten)" in text and "Standardisiert sind es 0 %, 0 % und 0 %, 74 % der Kanten sind umgekehrt" in text
 

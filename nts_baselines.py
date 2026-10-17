@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from kausal_generator import SplitMix64
+
 TIE = 1e-9
 
 
@@ -40,11 +42,19 @@ def varsortability(edges, x: np.ndarray) -> float:
     return good / total if total else float("nan")
 
 
-def sortnregress(x: np.ndarray, t_min: float = 3.0) -> set:
+def variance_order(x: np.ndarray, tie_seed: int = 0) -> list:
+    """Spalten nach wachsender Varianz (auf 8 Stellen gerundet). Bei Gleichstand, etwa nach der Standardisierung, entscheidet eine feste Zufallsreihenfolge (aus tie_seed), weder die Spaltennummer
+    (die in simulierten Welten die kausale Reihenfolge verraten könnte) noch Rundungsrauschen (das je Plattform verschieden ausfiele)."""
+    var = np.round(x.var(axis=0), 8)
+    tie = SplitMix64(tie_seed).uniform(x.shape[1])
+    return [int(v) for v in sorted(range(x.shape[1]), key=lambda j: (var[j], tie[j]))]
+
+
+def sortnregress(x: np.ndarray, t_min: float = 3.0, tie_seed: int = 0) -> set:
     """Rangbaseline: Variablen nach wachsender Varianz ordnen, jede auf alle Vorgänger regressieren, Kanten mit |t| unter t_min streichen. Ergebnis: Kantenmenge {(i, j)} für i → j."""
     x = x - x.mean(axis=0)
     n, d = x.shape
-    order = [int(v) for v in np.argsort(x.var(axis=0), kind="stable")]
+    order = variance_order(x, tie_seed)
     edges = set()
     for pos in range(1, d):
         j = order[pos]

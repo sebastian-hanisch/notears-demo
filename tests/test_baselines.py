@@ -102,3 +102,19 @@ def test_compare_by_hand():
     assert perfect["shd"] == 0 and perfect["correct"] == 3
     empty = B.compare(set(), set(), truth)
     assert empty["missing"] == 3 and empty["shd"] == 3
+
+
+def test_variance_order_by_hand_and_with_ties():
+    x = np.column_stack([np.array([-3.0, 3.0] * 2), np.array([-1.0, 1.0] * 2), np.array([-2.0, 2.0] * 2)])          # Var 9, 1, 4
+    assert B.variance_order(x) == [1, 2, 0]
+    z = B.standardize(x)
+    orders = {tuple(B.variance_order(z, seed)) for seed in range(30)}
+    assert all(sorted(o) == [0, 1, 2] for o in orders) and len(orders) == 6                                         # bei Gleichstand: feste Zufallsreihenfolge, alle sechs kommen vor
+    assert B.variance_order(z, 5) == B.variance_order(z, 5) and B.variance_order(z, 5) == B.variance_order(z * (1 + 1e-14), 5)    # unempfindlich gegen Rundungsrauschen
+
+
+def test_ties_do_not_follow_the_column_number():
+    """Auf standardisierten Daten darf die Rangbaseline die Reihenfolge der Spalten nicht verraten: Über viele Startwerte kommt jede Ordnung der Welt vor."""
+    z = B.standardize(W.simulate(W.World(), 500, SplitMix64(2)))
+    firsts = {B.variance_order(z, seed)[0] for seed in range(40)}
+    assert firsts == {0, 1, 2, 3, 4}

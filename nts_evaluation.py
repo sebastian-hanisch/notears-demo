@@ -100,7 +100,7 @@ def analyse(s: Settings) -> Analysis:
     truth = truth_edges(world)
     res = N.notears(data, lam=s.lam)
     learned = N.threshold_dag(res.w, s.thr)
-    rank = B.sortnregress(data)
+    rank = B.sortnregress(data, tie_seed=s.seed)
     corr = np.corrcoef(data, rowvar=False)
     pc = P.pc(5, P.fisher_z_test(corr, len(data), C.PC_ALPHA)).graph
     cov = np.cov(data, rowvar=False)
@@ -122,9 +122,9 @@ def _aggregate(rows: list) -> dict:
             "missing": float(np.mean([r["missing"] for r in rows])), "extra": float(np.mean([r["extra"] for r in rows])), "shd": float(np.mean([r["shd"] for r in rows]))}
 
 
-def _methods(data: np.ndarray, truth: set, lam: float = C.DEFAULT_LAMBDA, thr: float = C.DEFAULT_THR) -> dict:
+def _methods(data: np.ndarray, truth: set, tie_seed: int, lam: float = C.DEFAULT_LAMBDA, thr: float = C.DEFAULT_THR) -> dict:
     d = data.shape[1]
-    out = {"NOTEARS": B.compare(N.threshold_dag(N.notears(data, lam=lam).w, thr), set(), truth), "Rangbaseline": B.compare(B.sortnregress(data), set(), truth)}
+    out = {"NOTEARS": B.compare(N.threshold_dag(N.notears(data, lam=lam).w, thr), set(), truth), "Rangbaseline": B.compare(B.sortnregress(data, tie_seed=tie_seed), set(), truth)}
     g = P.pc(d, P.fisher_z_test(np.corrcoef(data, rowvar=False), len(data), C.PC_ALPHA)).graph
     out["PC"] = B.compare(set(g[0]), set(g[1]), truth)
     return out
@@ -145,7 +145,7 @@ def random_experiment(dags: int = C.EXP_RANDOM_DAGS, d: int = C.EXP_RANDOM_NODES
         x = W.simulate_linear(b, n, SplitMix64(C.SEED_BASE + 1000 + r))
         for sc, data in ((C.SCALES[0], x), (C.SCALES[1], B.standardize(x))):
             vs[sc].append(B.varsortability(truth, data))
-            for m, row in _methods(data, truth).items():
+            for m, row in _methods(data, truth, C.SEED_BASE + 1000 + r).items():
                 per[sc][m].append(row)
     return {"dags": used, "n": n, "nodes": d, "varsort": {sc: float(np.mean(v)) for sc, v in vs.items()}, "rows": {sc: {m: _aggregate(rows) for m, rows in ms.items()} for sc, ms in per.items()}}
 
@@ -167,7 +167,7 @@ def world_experiment(ns=C.EXP_WORLD_NS, reps: int = C.EXP_WORLD_REPS) -> dict:
                 zx += (W.Z, W.X) in learned
                 full += learned == truth
                 per["NOTEARS"].append(B.compare(learned, set(), truth))
-                per["Rangbaseline"].append(B.compare(B.sortnregress(data), set(), truth))
+                per["Rangbaseline"].append(B.compare(B.sortnregress(data, tie_seed=C.SEED_BASE + 100000 + 1000 * j + r), set(), truth))
                 g = P.pc(5, P.fisher_z_test(np.corrcoef(data, rowvar=False), n, C.PC_ALPHA)).graph
                 per["PC"].append(B.compare(set(g[0]), set(g[1]), truth))
             rows.append({"n": n, "scale": sc, "sz": sz / reps, "zx": zx / reps, "full": full / reps, "methods": {m: _aggregate(v) for m, v in per.items()}})
@@ -185,7 +185,7 @@ def sigma_experiment(sigmas=C.EXP_SIGMAS, reps: int = C.EXP_SIGMA_REPS, n: int =
         for r in range(reps):
             data = simulate_scaled(world, n, SplitMix64(C.SEED_BASE + 200000 + 1000 * i + r), sigma)
             nt += (W.S, W.Z) in N.threshold_dag(N.notears(data).w, C.DEFAULT_THR)
-            rank += (W.S, W.Z) in B.sortnregress(data)
+            rank += (W.S, W.Z) in B.sortnregress(data, tie_seed=C.SEED_BASE + 200000 + 1000 * i + r)
             v = data.var(axis=0)
             var_s += v[W.S] / reps
             var_z += v[W.Z] / reps
