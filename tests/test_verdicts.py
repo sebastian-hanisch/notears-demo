@@ -39,7 +39,7 @@ def test_random_verdict(small_random):
 def test_world_verdict(small_world):
     kind, text = ev.verdict_world(small_world)
     raw = small_world["rows"][0]
-    assert kind == "info" and "(n = 300, 2 Läufe je Zelle)" in text and f"S → Z in {ev.pct(raw['sz'])}" in text and "PC lässt beide Kanten offen" in text and "Mehr Standorte helfen nicht" in text
+    assert kind == "info" and "(n = 300, 2 Läufe je Zelle)" in text and f"S → Z in {ev.pct(raw['sz'])}" in text and "PC lässt beide Kanten offen" in text and "ändert sich daran nichts" in text
 
 
 def test_sigma_verdict(small_sigma):

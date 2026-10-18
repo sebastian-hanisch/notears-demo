@@ -55,7 +55,7 @@ def test_experiment_1_random_dags(full_random):
     raw, std = r["rows"]["roh"], r["rows"]["standardisiert"]
     assert (raw["NOTEARS"]["correct"], raw["NOTEARS"]["reversed"], raw["NOTEARS"]["shd"]) == pytest.approx((0.935, 0.0244, 0.4), abs=0.0006)
     assert (raw["Rangbaseline"]["correct"], raw["Rangbaseline"]["reversed"], raw["Rangbaseline"]["shd"]) == pytest.approx((0.9268, 0.065, 0.75), abs=0.0006)
-    # standardisiert entscheidet Rundungsrauschen über die Gleichstände des Verlusts: NOTEARS weicht je Plattform um eine Kante ab (CI: 0,317 / 0,366 / 4,65), die Rangbaseline ist über die feste Zufallsreihenfolge bei Gleichstand reproduzierbar
+    # standardisiert hängt die Richtung an der Rechnung (Restvarianzen je Reihenfolge, Rundung nur bei einzelnen Kanten): NOTEARS weicht je Plattform um eine Kante ab (CI: 0,317 / 0,366 / 4,65), die Rangbaseline ist über die feste Zufallsreihenfolge bei Gleichstand reproduzierbar
     assert (std["NOTEARS"]["correct"], std["NOTEARS"]["reversed"]) == pytest.approx((0.32, 0.36), abs=0.02) and std["NOTEARS"]["shd"] == pytest.approx(4.6, abs=0.1)
     assert (std["Rangbaseline"]["correct"], std["Rangbaseline"]["reversed"], std["Rangbaseline"]["shd"]) == pytest.approx((0.4553, 0.4797, 6.0), abs=0.0006)
     assert raw["PC"] == std["PC"] and (raw["PC"]["correct"], raw["PC"]["reversed"], raw["PC"]["undirected"], raw["PC"]["shd"]) == pytest.approx((0.3984, 0.1951, 0.2764, 2.9), abs=0.0006)

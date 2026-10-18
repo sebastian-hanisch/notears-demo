@@ -45,7 +45,7 @@ PRESETS = {
 PRESET_HELP = {
     "Rohdaten (Voreinstellung)": "Die Welt der Linie, Einheitsrauschen, Rohdaten: Die Varianz wächst längs der Pfeile, NOTEARS richtet alle fünf Kanten richtig, auch die, die PC offen lässt.",
     "Standardisiert": "Dieselben Daten, jede Spalte auf Mittel 0 und Streuung 1: Die Varianzordnung ist weg, und NOTEARS richtet die Kanten falsch herum.",
-    "Wurzel knapp": "Das Rauschen der Saison ist 1,5-fach: Ihre Varianz (2,25) liegt knapp unter der der Nachfrage (2,37). Die Rangbaseline richtet noch richtig, NOTEARS kippt oft.",
+    "Wurzel knapp": "Das Rauschen der Saison ist 1,5-fach: Ihre Varianz (2,25) liegt knapp unter der der Nachfrage (2,44). Die Rangbaseline richtet noch richtig, NOTEARS kippt oft.",
     "Wurzel streut stark": "Das Rauschen der Saison ist 2-fach: Die Saison hat mehr Varianz als die Nachfrage und diese mehr als der Faktor. Die Verfahren richten S–Z und Z–X falsch herum oder verlieren eine Kante.",
     "Wenige Standorte": "Nur 100 Standorte: In dieser Stichprobe fehlt die Kante Nachfrage → Servicegrad.",
     "Starke Strafe": "λ = 0,3 schrumpft die Gewichte stark (wahr 0,6, geschätzt 0,28 bei Wetter → Servicegrad): Die feste Schwelle 0,3 schneidet diese Kante ab.",

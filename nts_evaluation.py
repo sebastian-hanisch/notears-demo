@@ -277,7 +277,7 @@ def verdict_world(res: dict) -> tuple:
     std_small = next(r for r in res["rows"] if r["n"] == small and r["scale"] == C.SCALES[1])
     return "info", (f"In der Welt der Linie (n = {_n(big)}, {res['reps']} Läufe je Zelle) richtet NOTEARS roh S → Z in {pct(raw['sz'])} und Z → X in {pct(raw['zx'])} der Läufe richtig, den ganzen DAG in {pct(raw['full'])}; PC lässt beide Kanten offen "
                     f"(ungerichtet {pct(raw['methods']['PC']['undirected'])} der wahren Kanten). Standardisiert sind es {pct(std['sz'])}, {pct(std['zx'])} und {pct(std['full'])}, {pct(std['methods']['NOTEARS']['reversed'])} der Kanten sind umgekehrt; "
-                    f"mit n = {small} nicht anders ({pct(std_small['full'])} ganze DAGs): Mehr Standorte helfen nicht.")
+                    f"mit n = {small} nicht anders ({pct(std_small['full'])} ganze DAGs): Zwischen n = {small} und n = {_n(big)} ändert sich daran nichts.")
 
 
 def verdict_sigma(res: dict) -> tuple:

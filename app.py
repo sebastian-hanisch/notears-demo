@@ -2,7 +2,7 @@
 Sebastian Hanisch - Operations Research und Machine Learning
 
 Vierzehntes Stück der Linie Kausale Diagramme und Adjustierung. NOTEARS findet ein Diagramm durch Optimieren (Kleinste-Quadrate-Verlust, L1-Strafe, Azyklizität als Gleichung h(W) = 0, augmentiertes Lagrange-Verfahren)
-und richtet dabei Kanten, die PC offen lässt; die Richtungen stammen aus der Varianzordnung der Daten und verschwinden mit einer Standardisierung.
+und richtet dabei Kanten, die PC offen lässt; die Richtungen stammen im Wesentlichen aus der Varianzordnung der Daten und verschwinden mit einer Standardisierung.
 Kern: nts_notears.py, nts_baselines.py, nts_evaluation.py; PC und Welt: stl_pc.py, stl_world.py (wortgleich aus Stück 13).
 
 Lauffähig mit: streamlit run app.py
@@ -56,7 +56,7 @@ from nts_visualization import (
 
 st.set_page_config(page_title="NOTEARS: Was wirklich sortiert wird – Sebastian Hanisch", layout="wide")
 
-SPINNER = "Experiment rechnet über feste Zufallsströme (NOTEARS braucht ein bis zwei Sekunden je Anpassung) …"
+SPINNER = "Experiment rechnet über feste Zufallsströme (NOTEARS braucht je nach Rechner etwa ein bis zwei Sekunden je Anpassung) …"
 ARROW_KEYS = {a: f"hb_{BUILDER_NODES[a[0]]}{BUILDER_NODES[a[1]]}" for a in BUILDER_ARROWS}
 BUILDER_EXAMPLES = {
     "Zwei-Zyklus A ⇄ B": [(0, 1), (1, 0)],
@@ -112,7 +112,7 @@ st.markdown(
     """
 **Gibt Optimieren die Richtungen, die Testen offen lässt?** Dies ist das vierzehnte Stück der Linie **Kausale Diagramme und Adjustierung**. PC (Stück 13) lässt Kanten ungerichtet, weil Unabhängigkeiten sie nicht unterscheiden.
 **NOTEARS** stellt die Frage anders: Welche Gewichtsmatrix **W** erklärt die Daten am besten (Kleinste Quadrate, dazu eine L1-Strafe), **unter der Gleichung h(W) = 0**, die genau für azyklische Graphen gilt? Gelöst wird das mit einem
-augmentierten Lagrange-Verfahren. Das Ergebnis richtet auf Rohdaten alle Kanten, aber **die Richtungen stammen aus der Varianz**: Eine Standardisierung löscht sie, und eine Rangbaseline, die nur Varianzen sortiert, macht roh dasselbe.
+augmentierten Lagrange-Verfahren. Das Ergebnis richtet auf Rohdaten in der Welt alle fünf Kanten, aber **die Richtungen stammen im Wesentlichen aus der Varianz**: Eine Standardisierung löscht sie, und eine Rangbaseline, die nur Varianzen sortiert, richtet roh fast gleich gut.
 
 Weiter unten: der **Verlust zweier Richtungen** in geschlossener Form, der **Lauf der Nebenbedingung**, ein **Baukasten für h(W)**, vier Experimente (**🔬**), **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**.
 """
@@ -123,7 +123,7 @@ with st.expander("So liest man das Ergebnis", expanded=True):
         """
 1. **Die Welt** (links) ist die der Linie: Saison S → Nachfrage Z → Faktor X → Servicegrad Y, dazu Z → Y und Wetter W → Y, überall Einheitsrauschen.
 2. **NOTEARS** (rechts): **grün** richtig gerichtet, **orange** umgekehrt, **rot** überzählig, **grau gestrichelt** fehlend. Gewichte unter der Schwelle werden gestrichen.
-3. **Rangbaseline:** die Variablen nach Varianz ordnen und jede auf ihre Vorgänger regressieren. Sie schätzt keine Struktur; wenn sie ähnlich gut ist, sortiert NOTEARS nur nach Varianz.
+3. **Rangbaseline:** die Variablen nach Varianz ordnen und jede auf ihre Vorgänger regressieren. Sie schätzt keine Struktur; wenn sie ähnlich gut ist, richtet NOTEARS hier im Wesentlichen nach der Varianz.
 4. **Skala:** „standardisiert“ bringt jede Spalte auf Streuung 1. PC ändert sich dadurch nicht (Korrelationen sind skalenfrei), NOTEARS und die Rangbaseline schon.
 5. **Verlust zweier Richtungen:** Für ein Paar ist Verlust(i → j) − Verlust(j → i) = ½ ρ² (Var i − Var j): Es gewinnt die Richtung, in der die Größe mit der kleineren Varianz die Ursache ist.
         """
@@ -150,7 +150,7 @@ with st.sidebar:
                       help="Streuung des Rauschens der Wurzel S (1 = Einheitsrauschen wie überall). Var(S) = σ², Var(Z) = 0,64 σ² + 1: Bei σ = 1,67 kippt die Varianzordnung.")
     n = st.slider("Standorte", *bounds("n_slider"), step=C.N_STEP, key="n_slider", help="Zeilen der Datenmatrix.")
     st.markdown("**Verfahren**")
-    lam = st.select_slider("L1-Strafe λ", options=C.LAMBDAS, key="lam_slider", help="Je größer, desto stärker schrumpfen die Gewichte (wahr 0,6, geschätzt bei λ = 0,1 etwa 0,5).")
+    lam = st.select_slider("L1-Strafe λ", options=C.LAMBDAS, key="lam_slider", help="Je größer, desto stärker schrumpfen die Gewichte (wahr 0,6, geschätzt bei λ = 0,1 für Wetter → Servicegrad etwa 0,48).")
     thr = st.slider("Schwelle auf |W|", *bounds("thr_slider"), step=C.THR_STEP, key="thr_slider", help="Gewichte darunter zählen nicht als Kante; bei einem Kreis wird die schwächste Kante gestrichen.")
     seed = st.number_input("Zufalls-Seed der Stichprobe", *bounds("seed_input"), key="seed_input", step=1)
     st.button("🎲 Neue Stichprobe würfeln", width="stretch", on_click=randomize_seed)
@@ -273,12 +273,12 @@ st.markdown(
     """
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
-| **Gleiches Rauschen und unveränderte Skala** | Die Richtungen kommen aus der Varianzordnung: Eine Standardisierung oder ein Rauschen, das die Ordnung kippt, löscht sie oder dreht sie um (Experimente 1 bis 3). | Über die Äquivalenzklasse hinaus |
+| **Gleiches Rauschen und unveränderte Skala** | Die Richtungen kommen im Wesentlichen aus der Varianzordnung: Eine Standardisierung oder ein Rauschen, das die Ordnung kippt, löscht sie oder dreht sie um (Experimente 1 bis 3). | Über die Äquivalenzklasse hinaus |
 | **Linear und Gauß** | Das Modell ist eine lineare Gewichtsmatrix; nichtlineare Zusammenhänge sind nicht gebaut. | nicht gebaut |
 | **Alles Wichtige ist gemessen** | Verborgene Ursachen sind nicht gebaut (Stück 13 zeigt, was sie tun). | Wann geht es gar nicht? |
 | **Strafe und Schwelle** | Die L1-Strafe schrumpft die Gewichte, die feste Schwelle schneidet ab; beide zusammen wirken (Experiment 4). | nicht gebaut |
 | **Lokale Lösung** | Die Aufgabe ist nicht konvex; der Löser findet einen Punkt, keinen Beweis des globalen Optimums. | nicht gebaut |
-| **Kleine Graphen** | Fünf bis sechs Knoten; die Rechenzeit wächst mit d³, jede Anpassung dauert ein bis zwei Sekunden. | nicht gebaut |
+| **Kleine Graphen** | Fünf bis sechs Knoten; die Rechenzeit wächst mit d³, jede Anpassung dauert je nach Rechner etwa ein bis zwei Sekunden. | nicht gebaut |
 """
 )
 
